@@ -1,0 +1,187 @@
+
+<div class="dashboard">
+
+  <!-- Dashboard header -->
+  <header class="dashboard-header">
+    <div>
+      <p class="eyebrow">RETAIL OPERATIONS</p>
+
+      <h1>Transactions Ingest</h1>
+
+      <p class="subtitle">
+        Monitor transactions across stores and online sales.
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <!-- Refresh transactions without importing -->
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="loadTransactions()"
+        [disabled]="loading() || importing()">
+
+        @if (loading()) {
+          Refreshing...
+        } @else {
+          Refresh
+        }
+      </button>
+
+      <!-- Import transactions from source systems -->
+      <button
+        class="primary-button"
+        type="button"
+        (click)="importTransactions()"
+        [disabled]="importing() || loading()">
+
+        @if (importing()) {
+          Importing...
+        } @else {
+          Import Transactions
+        }
+      </button>
+
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Transaction summary cards -->
+    <section class="summary-grid">
+
+      <div class="summary-card">
+        <span>Total Transactions</span>
+        <strong>{{ totalCount() }}</strong>
+      </div>
+
+      <div class="summary-card active-card">
+        <span>Active Transactions</span>
+        <strong>{{ activeCount() }}</strong>
+      </div>
+
+      <div class="summary-card revoked-card">
+        <span>Revoked Transactions</span>
+        <strong>{{ revokedCount() }}</strong>
+      </div>
+
+      <div class="summary-card finalized-card">
+        <span>Finalized Transactions</span>
+        <strong>{{ finalizedCount() }}</strong>
+      </div>
+
+    </section>
+
+    <!-- Error message -->
+    @if (errorMessage()) {
+      <div class="alert error" role="alert">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <!-- Success message -->
+    @if (successMessage()) {
+      <div class="alert success" role="status">
+        {{ successMessage() }}
+      </div>
+    }
+
+    <!-- Transaction table -->
+    <section class="table-card">
+
+      <div class="table-heading">
+        <div>
+          <h2>Transaction Overview</h2>
+          <p>Latest synchronized transaction records</p>
+        </div>
+
+        <span class="record-count">
+          {{ totalCount() }} records
+        </span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Source System</th>
+              <th>Transaction ID</th>
+              <th>Location</th>
+              <th>Product</th>
+              <th>Amount</th>
+              <th>Transaction Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            @for (
+              transaction of transactions();
+              track transaction.sourceSystem + '-' + transaction.transactionId
+            ) {
+              <tr>
+
+                <td>
+                  {{ transaction.sourceSystem }}
+                </td>
+
+                <td>
+                  #{{ transaction.transactionId }}
+                </td>
+
+                <td>
+                  {{ transaction.locationCode }}
+                </td>
+
+                <td>
+                  {{ transaction.productName }}
+                </td>
+
+                <td class="amount">
+                  {{ transaction.amount | currency:'USD' }}
+                </td>
+
+                <td>
+                  {{ transaction.transactionTime | date:'yyyy-MM-dd HH:mm:ss':'UTC' }} UTC
+                </td>
+
+                <td>
+                  <span
+                    class="status-badge"
+                    [class.active]="transaction.status === 'Active'"
+                    [class.revoked]="transaction.status === 'Revoked'"
+                    [class.finalized]="transaction.status === 'Finalized'">
+
+                    {{ transaction.status }}
+
+                  </span>
+                </td>
+
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-state">
+
+                  @if (loading()) {
+                    Loading transactions...
+                  } @else if (errorMessage()) {
+                    Unable to display transactions.
+                  } @else {
+                    No transactions available.
+                  }
+
+                </td>
+              </tr>
+            }
+
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+</div>

@@ -1,0 +1,27 @@
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET build output
+**/bin/
+**/obj/
+TestResults/
+
+# SQLite local databases
+*.db
+*.db-shm
+*.db-wal
+
+# Angular / Node.js
+**/node_modules/
+**/.angular/
+**/dist/
+**/coverage/
+
+# Environment and local settings
+.env
+.env.*
