@@ -20,6 +20,7 @@ The application imports transactions from three simulated source systems, mainta
 
 ## Project Structure
 
+```text
 TransactionsIngest/
 ├── TransactionsIngest.Api/
 │   ├── Controllers/
