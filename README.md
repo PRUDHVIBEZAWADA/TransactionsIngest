@@ -1,830 +1,446 @@
-\# Transactions Ingest
+# Transactions Ingest
 
+A full-stack transaction ingestion application developed using **ASP.NET Core Web API (.NET 10), Angular 22, Entity Framework Core Code First, and SQLite**.
 
+The application imports transactions from three simulated source systems, maintains transaction records and audit history, applies transaction lifecycle rules, and displays the imported data through an Angular dashboard.
 
-A full-stack application built using \*\*ASP.NET Core Web API (.NET 10), Angular 22, Entity Framework Core, and SQLite\*\*.
+## Technologies Used
 
+| Component | Technology |
+|---|---|
+| Backend | ASP.NET Core Web API (.NET 10), C# |
+| Frontend | Angular 22, TypeScript, HTML, CSS |
+| Database | SQLite |
+| ORM | Entity Framework Core Code First |
+| Automated Testing | xUnit |
+| Backend IDE | Visual Studio 2026 Community |
+| Frontend IDE | Visual Studio Code |
+| Database Inspection | DB Browser for SQLite |
+| Version Control | Git and GitHub |
 
-
-The application imports transactions from three different sources into one database. It tracks transaction changes, manages transaction statuses, and keeps an audit history.
-
-
-
-I built this project to demonstrate how transaction data from multiple systems can be processed and managed in one place.
-
-
-
-\## Technologies and Tools Used
-
-
-
-\### Backend
-
-\- C# and ASP.NET Core Web API (.NET 10)
-
-\- Entity Framework Core (Code First)
-
-\- SQLite
-
-\- xUnit for automated testing
-
-\- \*\*Visual Studio 2026 Community\*\* for backend development, debugging, database migrations, and testing
-
-
-
-\### Frontend
-
-\- Angular 22
-
-\- TypeScript, HTML, and CSS
-
-\- \*\*Visual Studio Code (VS Code)\*\* for frontend development
-
-\- Angular CLI and npm
-
-
-
-\### Database
-
-\- SQLite for storing transactions and audit history
-
-\- DB Browser for SQLite for checking records, running SQL queries, and resetting test data
-
-
-
-\## Project Structure
-
-
-
-```text
+## Project Structure
 
 TransactionsIngest/
-
-│
-
 ├── TransactionsIngest.Api/
-
 │   ├── Controllers/
-
 │   ├── Data/
-
-│   ├── Models/
-
-│   ├── Services/
-
-│   ├── SourceProviders/
-
-│   │   ├── StoreUptownSource.cs
-
-│   │   ├── StoreDowntownSource.cs
-
-│   │   └── OnlineTransactionSource.cs
-
 │   ├── Migrations/
-
-│   ├── Program.cs
-
-│   └── appsettings.json
-
+│   ├── Models/
+│   ├── Services/
+│   ├── SourceProviders/
+│   ├── Properties/
+│   ├── appsettings.json
+│   └── TransactionsIngest.Api.csproj
 │
-
 ├── TransactionsIngest.Tests/
-
-│   └── UnitTest1.cs
-
+│   └── TransactionsIngest.Tests.csproj
 │
-
 ├── transactions-ingest-ui/
-
+│   ├── src/
+│   ├── public/
+│   ├── angular.json
+│   ├── package.json
+│   ├── package-lock.json
+│   └── proxy.conf.json
 │
-
-└── README.md
-
+├── .gitignore
+├── README.md
+└── AI_USAGE.md
 ```
 
+The backend is organized into separate folders for controllers, models, database access, source providers, and transaction processing. The Angular frontend and xUnit test project are maintained separately.
 
+## Application Features
 
-\## How the Application Works
+### Transaction Import
 
+The application imports transactions from three simulated sources:
 
+- Store Uptown
+- Store Downtown
+- Online
 
-The application uses three sample transaction sources:
+Each source contains five sample transactions, providing **15 transactions** for a fresh import.
 
+Each transaction is identified using the combination of `SourceSystem` and `TransactionId`. This allows different sources to use the same transaction ID without being treated as duplicates.
 
+### Transaction Lifecycle
 
-\- Store Uptown
+The application supports three transaction statuses:
 
-\- Store Downtown
+| Status | Description |
+|---|---|
+| Active | A transaction that is currently present in its source and remains within the permitted lifecycle period |
+| Revoked | A transaction removed from its source within the permitted 24-hour period |
+| Finalized | A transaction whose 24-hour period has expired; its stored record is preserved |
 
-\- Online
+The import process applies the following rules:
 
+- New transactions are inserted into the database.
+- Existing transactions are checked for changes.
+- Relevant changes are recorded in the audit history.
+- Transactions missing from their source can be revoked within the permitted 24-hour period.
+- Revoked transactions can be reactivated if they reappear within that period.
+- Transactions are finalized after the 24-hour period.
+- Finalized transactions remain unchanged even if their source data is modified or removed.
+- Repeated imports of unchanged data do not create duplicate transactions or unnecessary audit records.
 
+### Transaction Audit History
 
-Each source provides a list of transactions. When the user clicks \*\*Import Transactions\*\* on the Angular dashboard, the backend reads the latest transactions from all three sources and saves them in SQLite.
+The application maintains audit records to track changes to imported transactions.
 
+Audit history is stored separately from the main transaction records, allowing changes to be reviewed without replacing the current transaction data.
 
+### Angular Dashboard
 
-Transactions are identified using both \*\*Source System\*\* and \*\*Transaction ID\*\*.
+The Angular dashboard provides:
 
+- Total transaction count
+- Active transaction count
+- Revoked transaction count
+- Finalized transaction count
+- A table of imported transactions
+- **Import Transactions** button
+- **Refresh** button
 
+The dashboard communicates with the ASP.NET Core backend through API requests.
 
-For example, Store Uptown and Store Downtown can both have a transaction with ID `100001`. These are treated as separate transactions because they belong to different sources.
+## Prerequisites
 
+Install the following tools before running the application:
 
+1. **Visual Studio 2026 Community** with ASP.NET Core development support.
+2. **.NET 10 SDK**.
+3. **Node.js and npm**.
+4. **Angular CLI** compatible with Angular 22.
+5. **Visual Studio Code** for the Angular frontend.
 
-During an import, the application compares incoming transactions with the records already stored in the database.
+Optional:
 
+- **DB Browser for SQLite** to inspect and manage the local database.
 
+## Getting Started
 
-It can insert new transactions, update existing ones, record changes, and manage transaction statuses.
+### Step 1 — Clone or Download the Repository
 
+Clone the repository using Git or select **Code → Download ZIP** on GitHub.
 
+Extract the downloaded files if using ZIP.
 
-\## Transaction Status Rules
+The project contains the backend API, Angular frontend, automated tests, and existing Entity Framework Core migrations.
 
+### Step 2 — Open the Backend in Visual Studio
 
+Open the backend project in Visual Studio 2026 Community:
 
-The application supports three statuses.
+`TransactionsIngest.Api/TransactionsIngest.Api.csproj`
 
+Restore NuGet packages and build the project.
 
+If working with a solution that includes the test project, ensure both the API and test projects are loaded.
 
-\### Active
+### Step 3 — Create the SQLite Database Using EF Core Migrations
 
+**Important: The `transactions.db` file is intentionally not included in this GitHub repository.**
 
+This project uses **Entity Framework Core Code First migrations** to create and manage the database schema.
 
-A transaction is Active while it is within the allowed 24-hour period and has not been revoked or finalized.
+The existing migration files are included in:
 
+`TransactionsIngest.Api/Migrations/`
 
+These migration files allow a reviewer to create the SQLite database locally after downloading the repository.
 
-\### Revoked
-
-
-
-If an Active transaction disappears from its source within the allowed 24-hour period, it becomes Revoked.
-
-
-
-The transaction is not deleted from the database.
-
-
-
-If the same transaction appears again within the allowed period, it can become Active again.
-
-
-
-\### Finalized
-
-
-
-Transactions are finalized after the 24-hour period according to the import rules.
-
-
-
-Once a transaction becomes Finalized, it cannot be modified or revoked, even if its details change or it disappears from the source.
-
-
-
-\## Audit History
-
-
-
-The application records changes made to existing transactions.
-
-
-
-For example, if the amount of an eligible transaction changes from `$24.99` to `$29.99`, the application updates the transaction and creates an audit record.
-
-
-
-Audit records also track applicable status changes, such as:
-
-
-
-\- Active to Revoked
-
-\- Revoked to Active
-
-\- Active to Finalized
-
-
-
-This helps explain what happened to a transaction during the import process.
-
-
-
-\## Database Setup
-
-
-
-The project uses \*\*SQLite with Entity Framework Core Code First migrations\*\*.
-
-
-
-The connection string is configured in `TransactionsIngest.Api/appsettings.json`:
-
-
-
-```json
-
-"ConnectionStrings": {
-
-&#x20; "DefaultConnection": "Data Source=transactions.db"
-
-}
-
-```
-
-
-
-I created the initial database schema using EF Core migrations in Visual Studio 2026 Community.
-
-
-
-The migration files are included in the project.
-
-
-
-\### Setting Up the Database for the First Time
-
-
-
-If you are running the project on a new computer:
-
-
-
-1\. Open the solution in Visual Studio 2026 Community.
-
-2\. Set `TransactionsIngest.Api` as the startup project.
-
-3\. Open \*\*Tools → NuGet Package Manager → Package Manager Console\*\*.
-
-4\. Select `TransactionsIngest.Api` as the default project.
-
-5\. Run:
-
-
-
-```powershell
-
-Update-Database
-
-```
-
-
-
-This applies the existing migrations and creates the required database tables.
-
-
-
-\*\*You do not need to run `Add-Migration` again.\*\* The migration has already been created and is included in the project.
-
-
-
-If you are using the existing initialized database, you do not need to apply migrations again.
-
-
-
-\## Running the Backend
-
-
-
-I used \*\*Visual Studio 2026 Community\*\* to develop and run the backend.
-
-
-
-1\. Open the solution in Visual Studio.
-
-2\. Set `TransactionsIngest.Api` as the startup project.
-
-3\. Select the `https` launch profile.
-
-4\. Press \*\*F5\*\*.
-
-
-
-The backend runs at:
-
-
-
-`https://localhost:7280`
-
-
-
-The transactions endpoint is:
-
-
-
-`https://localhost:7280/api/transactions`
-
-
-
-The launch settings are configured to open the transactions endpoint automatically when the backend starts.
-
-
-
-If the database is empty, the endpoint returns:
-
-
-
-```json
-
-\[]
-
-```
-
-
-
-\### API Endpoints
-
-
-
-| Method | Endpoint | Description |
-
-|---|---|---|
-
-| GET | `/api/transactions` | Returns stored transactions |
-
-| POST | `/api/import` | Imports transactions from all three sources |
-
-
-
-\## Running the Angular Frontend
-
-
-
-I used \*\*Visual Studio Code (VS Code)\*\* to develop the Angular frontend.
-
-
-
-Make sure Node.js and npm are installed.
-
-
-
-1\. Open the `transactions-ingest-ui` folder in VS Code.
-
-2\. Open the integrated terminal.
-
-3\. Install the project dependencies:
-
-
-
-```bash
-
-npm install
-
-```
-
-
-
-4\. Start Angular:
-
-
-
-```bash
-
-ng serve --port 4300 --proxy-config proxy.conf.json --open
-
-```
-
-
-
-The frontend opens at:
-
-
-
-`http://localhost:4300`
-
-
-
-Keep the backend running in Visual Studio while using the frontend.
-
-
-
-The Angular development proxy forwards API requests to the backend.
-
-
-
-\## Angular Dashboard
-
-
-
-The frontend provides a simple dashboard for viewing transactions.
-
-
-
-It displays:
-
-
-
-\- Total Transactions
-
-\- Active Transactions
-
-\- Revoked Transactions
-
-\- Finalized Transactions
-
-\- A table of transaction details
-
-\- A \*\*Refresh\*\* button
-
-\- An \*\*Import Transactions\*\* button
-
-
-
-The \*\*Import Transactions\*\* button runs the backend import process and refreshes the dashboard.
-
-
-
-The \*\*Refresh\*\* button reloads the transactions currently stored in the database.
-
-
-
-\## Sample Transaction Data
-
-
-
-The project contains three source provider classes:
-
-
-
-\- `StoreUptownSource.cs`
-
-\- `StoreDowntownSource.cs`
-
-\- `OnlineTransactionSource.cs`
-
-
-
-Each source originally contained a sample transaction from the exercise.
-
-
-
-I expanded the sample data to five transactions per source, giving \*\*15 transactions\*\* for testing.
-
-
-
-The sample transactions include different products, amounts, card numbers, and transaction timestamps.
-
-
-
-Some transaction IDs are intentionally repeated across different sources to test that the application correctly uses both the source name and transaction ID.
-
-
-
-The source providers contain hardcoded sample data to simulate external transaction systems. They do not connect to real payment services.
-
-
-
-\*\*Note:\*\* During manual testing, I removed some sample transactions from the source provider classes to test Revoked and Finalized behavior. To reproduce the original 15-transaction import from an empty database, restore all five sample transactions in each source provider before importing.
-
-
-
-\## Starting Fresh with an Empty Database
-
-
-
-During development, I used DB Browser for SQLite to clear existing transaction data and test the import process again.
-
-
-
-This can be done without deleting the database or recreating its tables.
-
-
-
-\### Steps to Clear Transaction Data
-
-
-
-1\. Stop the backend in Visual Studio.
-
-2\. Open \*\*DB Browser for SQLite\*\*.
-
-3\. Open `TransactionsIngest.Api/transactions.db`.
-
-4\. Select the \*\*Execute SQL\*\* tab.
-
-5\. Run:
-
-
-
-```sql
-
-DELETE FROM TransactionAudits;
-
-DELETE FROM Transactions;
-
-```
-
-
-
-6\. Click \*\*Write Changes\*\* to save the changes.
-
-7\. Go to \*\*Browse Data\*\*.
-
-8\. Confirm that both `Transactions` and `TransactionAudits` are empty.
-
-9\. Close DB Browser for SQLite.
-
-10\. Restart the backend in Visual Studio.
-
-11\. Start Angular in VS Code.
-
-12\. Click \*\*Import Transactions\*\*.
-
-
-
-The application imports the transactions currently defined in the three source provider classes.
-
-
-
-\### Important Database Notes
-
-
-
-\- Do not delete the `\_\_EFMigrationsHistory` table.
-
-\- Do not delete the migration files.
-
-\- There is no need to run `Add-Migration` or `Update-Database` when simply clearing transaction records.
-
-\- Make sure DB Browser opens the same `transactions.db` file used by the backend.
-
-\- The SQLite connection uses a relative path, so database files can exist in different folders.
-
-\- This reset process is intended for local testing only.
-
-
-
-\## How to Test the Application
-
-
-
-The sample source provider classes make it possible to test the transaction rules manually.
-
-
-
-\### Test 1 — Import New Transactions
-
-
-
-Start with an empty database and import the sample transactions.
-
-
-
-If all three source providers contain five records, the dashboard should display \*\*15 total transactions\*\*.
-
-
-
-The Active and Finalized counts depend on the timestamps and when the import is performed.
-
-
-
-\### Test 2 — Revoke an Active Transaction
-
-
-
-1\. Import an Active transaction that is still within the allowed 24-hour period.
-
-2\. Stop the backend.
-
-3\. Open the source provider containing that transaction.
-
-4\. Remove the transaction from its source list.
-
-5\. Save the file.
-
-6\. Restart the backend.
-
-7\. Click \*\*Import Transactions\*\* again.
-
-
-
-The transaction should remain in SQLite but change to Revoked.
-
-
-
-I tested this using the \*\*USB Cable transaction (100002)\*\* from Store Uptown.
-
-
-
-\### Test 3 — Remove a Finalized Transaction
-
-
-
-1\. Find a transaction that is already Finalized.
-
-2\. Stop the backend.
-
-3\. Remove that transaction from its source provider.
-
-4\. Restart the backend.
-
-5\. Import again.
-
-
-
-The transaction should remain Finalized in the database.
-
-
-
-I tested this using the \*\*Charger transaction (100004)\*\* from Store Downtown.
-
-
-
-This confirms that finalized transactions cannot be changed or revoked.
-
-
-
-\### Test 4 — Update an Existing Transaction
-
-
-
-Change the amount or another tracked field of an eligible transaction in its source provider.
-
-
-
-Import again.
-
-
-
-The stored transaction should be updated, and the change should appear in the audit history.
-
-
-
-\### Test 5 — Import the Same Data Twice
-
-
-
-Import the same unchanged source data multiple times.
-
-
-
-The application should not create duplicate transactions or unnecessary audit records.
-
-
-
-This verifies that the import process is idempotent.
-
-
-
-\### Test 6 — Reactivate a Revoked Transaction
-
-
-
-1\. Remove an eligible Active transaction from its source.
-
-2\. Import again so it becomes Revoked.
-
-3\. Add the same transaction back to the source.
-
-4\. Import again.
-
-
-
-If the transaction is still within the allowed 24-hour period, it should become Active again.
-
-
-
-\## Automated Testing
-
-
-
-The backend includes an xUnit test project named `TransactionsIngest.Tests`.
-
-
-
-I wrote eight tests to verify the main import rules:
-
-
-
-1\. Importing a new transaction
-
-2\. Preventing duplicates when importing unchanged data
-
-3\. Handling the same transaction ID from different sources
-
-4\. Updating a transaction amount and creating an audit
-
-5\. Revoking a missing transaction
-
-6\. Finalizing an older transaction
-
-7\. Preventing changes to Finalized transactions
-
-8\. Reactivating a Revoked transaction
-
-
-
-The tests use an in-memory SQLite database, so they do not affect the normal application database.
-
-
-
-\### Running the Tests
-
-
+#### Open Package Manager Console
 
 In Visual Studio 2026 Community:
 
+1. Select **Tools → NuGet Package Manager → Package Manager Console**.
+2. Set the **Default project** to `TransactionsIngest.Api`.
+3. Ensure the API project is available as the startup project.
 
+#### Entity Framework Core Migration Commands
 
-1\. Open \*\*Test → Test Explorer\*\*.
+**Create an initial migration:**
 
-2\. Click \*\*Run All Tests\*\*.
+```powershell
+Add-Migration InitialCreate
+```
 
-3\. Check the results.
+This command generates migration files based on the entity models and `AppDbContext`.
 
+**Apply migrations and create the database:**
 
+```powershell
+Update-Database
+```
 
-During local testing, \*\*all 8 tests passed\*\*.
+This command applies pending migrations and creates the SQLite database and required tables if they do not already exist.
 
+#### Which Command Should a Reviewer Run?
 
+The `InitialCreate` migration has **already been created during development** and is included in this repository.
 
-\## Design Decisions
+Therefore, when downloading this project for the first time, **do not run `Add-Migration InitialCreate` again**.
 
+Run only:
 
+```powershell
+Update-Database
+```
 
-I made a few design choices to keep the project simple and easy to maintain.
+This applies the existing migration and creates the local SQLite database.
 
+The resulting database contains tables including:
 
+- `Transactions`
+- `TransactionAudits`
+- `__EFMigrationsHistory`
 
-\*\*Separate source providers\*\*
+The `__EFMigrationsHistory` table tracks which migrations have been applied.
 
+#### SQLite Connection String
 
+The database connection string is configured in `TransactionsIngest.Api/appsettings.json`:
 
-Each transaction source has its own class implementing the same interface. This makes it easier to add more sources without changing the main import logic.
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=transactions.db"
+  }
+}
+```
 
+The database filename is relative to the working directory used by the application or EF Core tooling.
 
+When running the backend from its project directory, the expected database location is:
 
-\*\*Central import service\*\*
+`TransactionsIngest.Api/transactions.db`
 
+Use a consistent working directory for migration commands and API execution so they reference the same database file.
 
+#### Alternative: Using the .NET CLI
 
-The import service handles transaction comparison, updates, status changes, and audit history in one place.
+From the `TransactionsIngest.Api` directory, install the EF Core CLI tool if needed:
 
+```bash
+dotnet tool install --global dotnet-ef
+```
 
+Then apply the existing migration:
 
-\*\*SQLite database\*\*
+```bash
+dotnet ef database update
+```
 
+If `dotnet-ef` is already installed, there is no need to install it again.
 
+#### Future Database Model Changes
 
-SQLite is lightweight and does not require a separate database server, which makes local setup easier.
+If the entity models or `AppDbContext` change in the future, create a new migration with a descriptive name and apply it.
 
+For example:
 
+```powershell
+Add-Migration AddTransactionField
+Update-Database
+```
 
-\*\*EF Core Code First\*\*
+These commands are for future schema changes.
 
+For the initial setup of this repository, the existing migration only needs to be applied using `Update-Database`.
 
+### Step 4 — Run the Backend API
 
-I used Code First migrations to create and manage the database schema from the C# models.
+In Visual Studio 2026 Community:
 
+1. Set `TransactionsIngest.Api` as the startup project.
+2. Select the **HTTPS** launch profile.
+3. Press **F5** to run the application.
 
+The backend runs at:
 
-\*\*Angular frontend\*\*
+`https://localhost:7280`
 
+To view the stored transactions, open:
 
+`https://localhost:7280/api/transactions`
 
-I used Angular to create a simple dashboard where transactions can be viewed and imported.
+On a newly created database, the endpoint should initially return:
 
+```json
+[]
+```
 
+This is expected because the database schema has been created but no transactions have been imported yet.
 
-\*\*Automated tests\*\*
+### Step 5 — Run the Angular Frontend
 
+Open the `transactions-ingest-ui` folder in Visual Studio Code.
 
+Open a terminal inside the Angular project directory.
 
-I used xUnit with in-memory SQLite to verify the business rules independently of the application's main database.
+Install the required dependencies:
 
+```bash
+npm install
+```
 
+Start the Angular development server:
 
-\## Notes and Limitations
+```bash
+ng serve --port 4300 --proxy-config proxy.conf.json --open
+```
 
+The frontend opens at:
 
+`http://localhost:4300`
 
-\- Transaction sources are simulated using hardcoded data.
+Keep the ASP.NET Core backend running while using the dashboard.
 
-\- Importing is triggered manually rather than on a schedule.
+The Angular proxy configuration forwards API requests to the backend during local development.
 
-\- Fixed sample timestamps become older over time, which affects transaction statuses.
+### Step 6 — Import Transactions
 
-\- The application is designed for local development and demonstration.
+Once the backend and Angular frontend are running:
 
-\- A production application would need additional features such as authentication, real external integrations, monitoring, and deployment configuration.
+1. Open the Angular dashboard.
+2. Click **Import Transactions**.
+3. Wait for the import operation to complete.
+4. Click **Refresh** if needed.
 
+The application imports sample transactions from the three source providers.
 
+| Source | Number of Transactions |
+|---|---:|
+| Store Uptown | 5 |
+| Store Downtown | 5 |
+| Online | 5 |
+| **Total** | **15** |
 
-\## Summary
+The Active, Revoked, and Finalized counts depend on the UTC timestamps and the current time.
 
+Some sample transactions have older timestamps to demonstrate finalization. Because the timestamps are fixed, their statuses may change as time passes.
 
+## API Endpoints
 
-This project demonstrates how transactions from multiple sources can be imported into one database while tracking changes and following transaction lifecycle rules.
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/transactions` | Retrieves stored transactions |
+| POST | `/api/import` | Imports and reconciles transactions from all source providers |
 
+The Angular frontend uses these endpoints to retrieve transaction data and trigger imports.
 
+## Automated Testing
 
-The main focus was building a repeatable import process, managing Active, Revoked, and Finalized transactions, keeping an audit history, and providing a simple Angular dashboard to view and test the results.
+The project includes an xUnit test project named `TransactionsIngest.Tests`.
 
+The test suite covers eight scenarios:
 
+1. Inserting a new transaction.
+2. Preventing duplicate transactions during repeated imports.
+3. Handling the same transaction ID from different source systems.
+4. Updating a transaction amount and recording an audit entry.
+5. Revoking a transaction that is missing from its source.
+6. Finalizing a transaction after the permitted 24-hour period.
+7. Preserving a finalized transaction when its source data changes.
+8. Reactivating a revoked transaction when it reappears within the permitted period.
 
-I developed the backend using \*\*Visual Studio 2026 Community\*\*, built the frontend using \*\*Visual Studio Code\*\*, and used \*\*DB Browser for SQLite\*\* to inspect and test the database.
+### Running Tests in Visual Studio
 
+1. Open the solution containing the backend and test projects.
+2. Select **Test → Test Explorer**.
+3. Click **Run All Tests**.
 
+All eight tests passed during local development.
 
+## Manual Testing
+
+Manual testing was performed using the Angular dashboard, backend API responses, and DB Browser for SQLite.
+
+The testing process included:
+
+- Importing all 15 sample transactions.
+- Repeating the import to check duplicate prevention.
+- Comparing dashboard totals with the API and database records.
+- Calculating expected transaction status counts based on UTC timestamps.
+- Removing an Active transaction from Store Uptown to test revocation.
+- Removing a Finalized transaction from Store Downtown to verify that the stored record remained unchanged.
+- Inspecting database records after import operations.
+
+The source provider files were restored to five transactions each after the manual lifecycle tests.
+
+## Resetting the Database for Testing
+
+To clear imported transaction data and perform a fresh import without recreating the database:
+
+1. Stop the backend application.
+2. Open the correct `transactions.db` file in DB Browser for SQLite.
+3. Select the **Execute SQL** tab.
+4. Run:
+
+```sql
+DELETE FROM TransactionAudits;
+DELETE FROM Transactions;
+```
+
+5. Click **Write Changes**.
+6. Confirm that both tables are empty.
+7. Close DB Browser for SQLite.
+8. Restart the backend and import the sample transactions again.
+
+**Do not delete** the database schema or `__EFMigrationsHistory` table.
+
+Clearing transaction rows does not require running `Add-Migration` or `Update-Database` again because the database structure remains intact.
+
+## Design Decisions
+
+### Separate Source Providers
+
+Each simulated source implements a shared `ISourceTransactionProvider` interface.
+
+This separates source-specific data retrieval from transaction processing and allows additional providers to be added without changing the overall import approach.
+
+### Composite Transaction Identity
+
+Transactions are identified by the combination of `SourceSystem` and `TransactionId`.
+
+This avoids conflicts when different sources contain transactions with the same numeric ID.
+
+### Centralized Import Processing
+
+The `TransactionImportService` contains the transaction reconciliation and lifecycle processing logic.
+
+This keeps business rules separate from the API controllers.
+
+### UTC-Based Lifecycle Rules
+
+UTC timestamps are used for transaction lifecycle calculations to avoid inconsistencies caused by local time zones.
+
+### Finalized Transaction Protection
+
+Once a transaction is finalized, subsequent imports do not modify or revoke its stored record.
+
+### Idempotent Imports
+
+Repeated imports of unchanged data do not create duplicate transactions or unnecessary audit history entries.
+
+### Entity Framework Core Migrations
+
+EF Core Code First migrations manage the database schema.
+
+The migration files are committed to GitHub, while the generated SQLite database file is excluded. This allows a reviewer to recreate the database locally without requiring a pre-populated database file.
+
+## Notes and Limitations
+
+- The three source providers use simulated in-memory transaction data rather than external systems.
+- The application is intended for local development and demonstration.
+- Sample transaction timestamps are fixed, so status distributions change over time.
+- The SQLite database file is excluded from GitHub and must be created locally using the existing EF Core migration.
+- The application does not include production authentication, deployment configuration, or external transaction source integrations.
+
+## AI Usage Disclosure
+
+AI assistance used during development is documented in [`AI_USAGE.md`](AI_USAGE.md).
+
+The disclosure includes representative prompts, development instructions, conventions, design discussions, corrections to generated output, and testing activities.
