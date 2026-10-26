@@ -6,8 +6,8 @@ The application imports transactions from three simulated source systems, mainta
 
 ## Technologies Used
 
-| Component | Technology |
-|---|---|
+| **Component** | **Technology** |
+| --- | --- |
 | Backend | ASP.NET Core Web API (.NET 10), C# |
 | Frontend | Angular 22, TypeScript, HTML, CSS |
 | Database | SQLite |
@@ -69,8 +69,8 @@ Each transaction is identified using the combination of `SourceSystem` and `Tran
 
 The application supports three transaction statuses:
 
-| Status | Description |
-|---|---|
+| **Status** | **Description** |
+| --- | --- |
 | Active | A transaction that is currently present in its source and remains within the permitted lifecycle period |
 | Revoked | A transaction removed from its source within the permitted 24-hour period |
 | Finalized | A transaction whose 24-hour period has expired; its stored record is preserved |
@@ -134,7 +134,7 @@ The project contains the backend API, Angular frontend, automated tests, and exi
 
 Open the backend project in Visual Studio 2026 Community:
 
-`TransactionsIngest.Api/TransactionsIngest.Api.csproj`
+`TransactionsIngest.Api/TransactionsIngest.Api.slnx`
 
 Restore NuGet packages and build the project.
 
@@ -158,22 +158,24 @@ In Visual Studio 2026 Community:
 
 1. Select **Tools → NuGet Package Manager → Package Manager Console**.
 2. Set the **Default project** to `TransactionsIngest.Api`.
-3. Ensure the API project is available as the startup project.
+3. Set `TransactionsIngest.Api` as the startup project.
 
 #### Entity Framework Core Migration Commands
 
-**Create an initial migration:**
+**Create an initial migration (already completed during development):**
 
 ```powershell
-Add-Migration InitialCreate
+Add-Migration InitialCreate -Project TransactionsIngest.Api -StartupProject TransactionsIngest.Api
 ```
 
 This command generates migration files based on the entity models and `AppDbContext`.
 
+**Do not run this command when setting up the downloaded repository**, because the `InitialCreate` migration is already included.
+
 **Apply migrations and create the database:**
 
 ```powershell
-Update-Database
+Update-Database -Project TransactionsIngest.Api -StartupProject TransactionsIngest.Api
 ```
 
 This command applies pending migrations and creates the SQLite database and required tables if they do not already exist.
@@ -187,10 +189,10 @@ Therefore, when downloading this project for the first time, **do not run `Add-M
 Run only:
 
 ```powershell
-Update-Database
+Update-Database -Project TransactionsIngest.Api -StartupProject TransactionsIngest.Api
 ```
 
-This applies the existing migration and creates the local SQLite database.
+This explicitly identifies the API project for both migrations and startup configuration, avoiding ambiguity when the solution also contains `TransactionsIngest.Tests`.
 
 The resulting database contains tables including:
 
@@ -222,16 +224,16 @@ Use a consistent working directory for migration commands and API execution so t
 
 #### Alternative: Using the .NET CLI
 
-From the `TransactionsIngest.Api` directory, install the EF Core CLI tool if needed:
+From the repository root, install the EF Core CLI tool if needed:
 
-```bash
+```powershell
 dotnet tool install --global dotnet-ef
 ```
 
 Then apply the existing migration:
 
-```bash
-dotnet ef database update
+```powershell
+dotnet ef database update --project TransactionsIngest.Api --startup-project TransactionsIngest.Api
 ```
 
 If `dotnet-ef` is already installed, there is no need to install it again.
@@ -243,13 +245,13 @@ If the entity models or `AppDbContext` change in the future, create a new migrat
 For example:
 
 ```powershell
-Add-Migration AddTransactionField
-Update-Database
+Add-Migration AddTransactionField -Project TransactionsIngest.Api -StartupProject TransactionsIngest.Api
+Update-Database -Project TransactionsIngest.Api -StartupProject TransactionsIngest.Api
 ```
 
 These commands are for future schema changes.
 
-For the initial setup of this repository, the existing migration only needs to be applied using `Update-Database`.
+For the initial setup of this repository, the existing migration only needs to be applied using the explicit `Update-Database` command shown above.
 
 ### Step 4 — Run the Backend API
 
@@ -283,13 +285,13 @@ Open a terminal inside the Angular project directory.
 
 Install the required dependencies:
 
-```bash
+```powershell
 npm install
 ```
 
 Start the Angular development server:
 
-```bash
+```powershell
 ng serve --port 4300 --proxy-config proxy.conf.json --open
 ```
 
@@ -312,8 +314,8 @@ Once the backend and Angular frontend are running:
 
 The application imports sample transactions from the three source providers.
 
-| Source | Number of Transactions |
-|---|---:|
+| **Source** | **Number of Transactions** |
+| --- | --- |
 | Store Uptown | 5 |
 | Store Downtown | 5 |
 | Online | 5 |
@@ -325,8 +327,8 @@ Some sample transactions have older timestamps to demonstrate finalization. Beca
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
+| **Method** | **Endpoint** | **Description** |
+| --- | --- | --- |
 | GET | `/api/transactions` | Retrieves stored transactions |
 | POST | `/api/import` | Imports and reconciles transactions from all source providers |
 
@@ -442,6 +444,6 @@ The migration files are committed to GitHub, while the generated SQLite database
 
 ## AI Usage Disclosure
 
-AI assistance used during development is documented in [`AI_USAGE.md`](AI_USAGE.md).
+AI assistance used during development is documented in [`AI_USAGE.md`](https://github.com/PRUDHVIBEZAWADA/TransactionsIngest/blob/master/AI_USAGE.md).
 
 The disclosure includes representative prompts, development instructions, conventions, design discussions, corrections to generated output, and testing activities.
